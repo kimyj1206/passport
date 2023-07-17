@@ -6,6 +6,8 @@ const path = require('path');
 const User = require('../src/models/users.model');
 const passport = require('passport');
 const cookieSession = require('cookie-session');
+const { checkNotAuthenticated, checkAuthenticated } = require('./middlewares/auth');
+
 
 const cookieEncryptionKey = 'secret-key';
 
@@ -14,7 +16,7 @@ app.use(cookieSession({
   keys: [cookieEncryptionKey]
 }))
 
-// passport랑 cookie-session 같이 사용해서 에러 발생을 막아주는 코드
+// passport랑 cookie-session 같이 사용해서 발생하는 에러를 막아주는 코드
 app.use(function (req, res, next) {
   if (req.session && !req.session.regenerate) {
     req.session.regenerate = (cb) => {
@@ -61,15 +63,15 @@ mongoose.connect(``)
 app.use('/static', express.static(path.join(__dirname, 'public')));
 
 // 라우터 설정
-app.get('/', (req, res) => {
+app.get('/', checkAuthenticated, (req, res) => {
   res.render('index');
 });
 
-app.get('/login', (req, res) => {
+app.get('/login', checkNotAuthenticated, (req, res) => {
   res.render('login');
 });
 
-app.get('/signup', (req, res) => {
+app.get('/signup', checkNotAuthenticated, (req, res) => {
   res.render('signup');
 });
 
@@ -113,4 +115,16 @@ app.post('/login', (req, res, next) => {
     });
     // 미들웨어 안에 미들웨어 호출하기 위해 아래 코드 작성
   })(req, res, next);
+});
+
+// 로그아웃 로직
+app.post('/logout', function (req, res, next) {
+  // 로그아웃 시 에러 났을 때 에러 처리
+  req.logOut(function (err) {
+    if (err) {
+      return next(err);
+    } else {
+      res.redirect('/login'); // 로그아웃이 성공했을 시
+    }
+  });
 });

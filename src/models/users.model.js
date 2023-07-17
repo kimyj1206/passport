@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 
 // 스키마 생성
 const userSchema = mongoose.Schema({
@@ -18,19 +18,34 @@ const userSchema = mongoose.Schema({
   }
 })
 
-// 비밀번호가 일치하는지 확인
+// 해시된 비밀번호가 입력한 비밀번호랑 일치하는지 확인
 userSchema.methods.comparePassword = function(plainPassword, cb) {
-  // bcrypt compare 비교
-  // plainPassword => client에서 제공, this.password => db에 저장된 비밀번호
-  if (plainPassword === this.password) {
-    // login success
-    cb(null, true); // error 있으면 null에, password가 맞다면 true
-  } else {
-    // login failure
-    cb(null, false);
-  }
-  return cb({error: 'error'});
+  // this.password는 db에 해시된 비밀번호
+  bcrypt.compare(plainPassword, this.password, function (err, isMatch) {
+    if (err) return cb(err);
+    cb(null, isMatch);
+  })
 }
+
+// db에 password 암호화
+const saltRounds = 10; // 랜덤 숫자
+// save 하기 전에 실행
+userSchema.pre('save', function (next) {
+  let user = this;
+  // 비밀번호가 변경될 때만
+  if (user.isModified('password')) {
+    // salt를 생성
+    bcrypt.genSalt(saltRounds, function (err, salt) {
+      if (err) return next(err);
+
+      bcrypt.hash(user.password, salt, function (err, hashedPassword) {
+        if (err) return next(err);
+        user.password = hashedPassword;
+        next();
+      })
+    });
+  }
+});
 
 // 모델 생성, 모델을 가지고 데이터 제어 가능
 const User = mongoose.model('User', userSchema);
