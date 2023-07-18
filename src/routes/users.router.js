@@ -65,4 +65,11 @@ usersRouter.get('/google/callback', passport.authenticate('google', {
   failureRedirect: '/login' // 실패 시 로그인 화면으로 이동
 }));
 
+// 카카오 로그인
+usersRouter.get('/kakao', passport.authenticate('kakao'));
+usersRouter.get('/kakao/callback', passport.authenticate('kakao', {
+  successReturnToOrRedirect: '/',
+  failureRedirect: '/login'
+}));
+
 module.exports = usersRouter;
