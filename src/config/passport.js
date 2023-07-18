@@ -1,6 +1,6 @@
 const passport = require('passport');
-const LocalStrategy = require('passport-local').Strategy;
 const User = require('../models/users.model');
+const LocalStrategy = require('passport-local').Strategy;
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 
 // req.logIn(user) 호출시 세션 데이터 생성 코드 실행
@@ -55,7 +55,7 @@ const googleStrategyConfig = new GoogleStrategy({
   clientID: process.env.GOOGLE_CLIENT_ID,
   clientSecret: process.env.GOOGLE_CLIENT_SECRET, // googleClientId랑 googleClientSecret를 발급받아 넣어줬기 때문에 구글 로그인 화면으로 이동할 수 있었음.
   callbackURL: '/auth/google/callback',
-  scope: ['email', 'profile'] // 구글에 email, profile 요청
+  scope: ['email', 'profile'] // 구글에 email, profile 받아옴
 }, (accessToken, refreshToken, profile, done) => {
   // console.log('profile', profile); // user 정보를 가져오지 못해서 콘솔이 안찍힘 => 라우터에서 옵션 지정해야 콘솔 찍힘
   // 가져온 user 정보를 db에 저장하는데 이미 저장됐는지 확인
