@@ -32,7 +32,7 @@ const saltRounds = 10; // 랜덤 숫자
 // save 하기 전에 실행
 userSchema.pre('save', function (next) {
   let user = this;
-  // 비밀번호가 변경될 때만
+  // 비밀번호가 변경될 때
   if (user.isModified('password')) {
     // salt를 생성
     bcrypt.genSalt(saltRounds, function (err, salt) {
@@ -44,7 +44,9 @@ userSchema.pre('save', function (next) {
         next();
       })
     });
-  }
+  } else {
+      next(); // password를 변경하지 않은 경우 => ex) 구글 로그인 시
+    }
 });
 
 // 모델 생성, 모델을 가지고 데이터 제어 가능

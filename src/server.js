@@ -1,19 +1,19 @@
 const express = require('express');
 const app = express();
-const PORT = 5000;
+const config = require('config');
+const serverConfig = config.get('server');
+const PORT = serverConfig.port;
 const { default: mongoose } = require('mongoose');
 const path = require('path');
 const User = require('../src/models/users.model');
 const passport = require('passport');
 const cookieSession = require('cookie-session');
 const { checkNotAuthenticated, checkAuthenticated } = require('./middlewares/auth');
-
-
-const cookieEncryptionKey = 'secret-key';
+require('dotenv').config();
 
 // cookie-session 생성
 app.use(cookieSession({
-  keys: [cookieEncryptionKey]
+  keys: [process.env.COOKIE_ENCRYPTION_KEY]
 }))
 
 // passport랑 cookie-session 같이 사용해서 발생하는 에러를 막아주는 코드
@@ -31,6 +31,11 @@ app.use(function (req, res, next) {
     next();
 })
 
+// port 설정
+app.listen(PORT, () => {
+  console.log(`listening on port ${PORT}`);
+})
+
 // view engine configuration
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
@@ -44,14 +49,9 @@ app.use(passport.initialize());
 app.use(passport.session());
 require('./config/passport');
 
-// port 설정
-app.listen(PORT, () => {
-  console.log(`listening on port ${PORT}`);
-})
-
 // db 연결
 mongoose.set('strictQuery', false);
-mongoose.connect(``)
+mongoose.connect(process.env.MONGO_URI)
   .then(() => {
     console.log('mongodb server connected');
   })
@@ -128,3 +128,10 @@ app.post('/logout', function (req, res, next) {
     }
   });
 });
+
+// 구글 로그인
+app.get('/auth/google', passport.authenticate('google'));
+app.get('/auth/google/callback', passport.authenticate('google', {
+  successReturnToOrRedirect: '/', // 성공 시 홈 화면으로 이동
+  failureRedirect: '/login' // 실패 시 로그인 화면으로 이동
+}));
