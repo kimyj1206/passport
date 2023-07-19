@@ -9,6 +9,7 @@ const passport = require('passport');
 const cookieSession = require('cookie-session');
 const mainRouter = require('./routes/main.router');
 const usersRouter = require('./routes/users.router');
+const productsRouter = require('./routes/products.router');
 require('dotenv').config();
 
 app.use(express.json());
@@ -61,6 +62,12 @@ app.set('view engine', 'ejs');
 // 라우터 설정
 app.use('/', mainRouter);
 app.use('/auth', usersRouter);
+app.use('/products', productsRouter);
+
+// error 처리
+app.use((err, req, res, next) => {
+  res.json({ msg : err.message });
+})
 
 // port 설정
 app.listen(PORT, () => {
